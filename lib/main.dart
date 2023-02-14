@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:findvalue/pages/number_page.dart';
-import 'package:findvalue/utils/check_list.dart';
-import 'package:findvalue/utils/custom_formatter.dart';
-import 'package:findvalue/utils/error_text_provider.dart';
+import 'package:findvalue/strings.dart';
+import 'package:findvalue/utils/find_value_helper.dart';
+import 'package:findvalue/models/error_text_provider.dart';
 import 'package:findvalue/utils/utils.dart';
 import 'package:findvalue/widgets/custom_text_field.dart';
 import 'package:flutter/cupertino.dart';
@@ -30,13 +30,13 @@ class MyApp extends StatelessWidget {
     return Platform.isIOS
         ? const CupertinoApp(
             theme: CupertinoThemeData(brightness: Brightness.light),
-            home: MyHomePage(title: 'Find Value'))
+            home: MyHomePage(title: Strings.titleApp))
         : MaterialApp(
-            title: 'Find Value',
+            title: Strings.titleApp,
             theme: ThemeData(
               primarySwatch: Colors.blue,
             ),
-            home: const MyHomePage(title: 'Find Value'),
+            home: const MyHomePage(title: Strings.titleApp),
           );
   }
 }
@@ -50,7 +50,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  String _text = "";
+  String _text = Strings.emptyString;
   void _saveErrorText(String text) {
     Provider.of<ErrorTextProvider>(context, listen: false).saveErrorText(text);
   }
@@ -80,14 +80,14 @@ class _MyHomePageState extends State<MyHomePage> {
     List<int> numbersList = stringList.map(int.parse).toList();
 
     if (numbersList.length >= 3) {
-      final chosenNumber = findNotCorrectAmount(numbersList);
+      final chosenNumber = FindValueHelper().findNotCorrectAmount(numbersList);
       if (chosenNumber == null) {
-        _saveErrorText("Incorrect numbers");
+        _saveErrorText(Strings.incorrectNumbers);
         return;
       } else {
-        _saveErrorText("");
+        _saveErrorText(Strings.emptyString);
       }
-      if (errorText == "") {
+      if (errorText == Strings.emptyString) {
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -98,7 +98,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void onTextFieldCallback(String text) {
+  void _onTextFieldCallback(String text) {
     setState(() {
       _text = text;
     });
@@ -120,12 +120,13 @@ class _MyHomePageState extends State<MyHomePage> {
       child: Column(
         children: [
           CustomTextField(
-            textFieldCallback: (value) => onTextFieldCallback(value),
+            textFieldCallback: (value) => _onTextFieldCallback(value),
           ),
           Padding(
             padding: const EdgeInsets.only(top: 20),
             child: OutlinedButton(
-                onPressed: _onFindButtonPressed, child: const Text('Find')),
+                onPressed: _onFindButtonPressed,
+                child: const Text(Strings.find)),
           )
         ],
       ),

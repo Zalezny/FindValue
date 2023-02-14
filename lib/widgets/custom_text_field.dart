@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../strings.dart';
 import '../utils/custom_formatter.dart';
-import '../utils/error_text_provider.dart';
+import '../models/error_text_provider.dart';
 import '../utils/utils.dart';
 
 class CustomTextField extends StatefulWidget {
@@ -38,15 +39,16 @@ class _CustomTextFieldState extends State<CustomTextField> {
         ? SafeArea(
             child: CupertinoTextFormFieldRow(
               controller: _textFieldController,
-              prefix: const Text("Tab"),
+              prefix: const Text(Strings.tab),
               onChanged: (value) {
                 widget.textFieldCallback(value);
               },
               inputFormatters: _getFormattersList(_textFieldController.text),
-              placeholder: 'Enter numbers ex. 1, 2, 3',
+              placeholder: Strings.placeholderTextField,
+              // Validator for Cupertino (not work)
               validator: (String? value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter a value';
+                  return Strings.enterValue;
                 }
                 return null;
               },
@@ -62,8 +64,22 @@ class _CustomTextFieldState extends State<CustomTextField> {
             decoration: InputDecoration(
                 errorText: errorText.isEmpty ? null : errorText,
                 border: const OutlineInputBorder(),
-                hintText: 'Enter numbers ex. 1, 2, 3'),
+                hintText: Strings.placeholderTextField),
           );
+  }
+
+  void _buildOnChanged(String value) {
+    setState(() {
+      if (','.allMatches(value).length < 3) {
+        if (!_isMinRangeListFormatter(value)) {
+          _saveErrorText(Strings.errorMinThree);
+        } else {
+          _saveErrorText(Strings.emptyString);
+        }
+      } else {
+        _saveErrorText(Strings.emptyString);
+      }
+    });
   }
 
   List<TextInputFormatter> _getFormattersList(String replacementString) {
@@ -74,21 +90,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
     ];
   }
 
-  void _buildOnChanged(String value) {
-    setState(() {
-      if (','.allMatches(value).length < 3) {
-        if (!_isMinRangeList(value)) {
-          _saveErrorText("Must be min. 3 elements in list");
-        } else {
-          _saveErrorText("");
-        }
-      } else {
-        _saveErrorText("");
-      }
-    });
-  }
-
-  bool _isMinRangeList(String value) {
+  bool _isMinRangeListFormatter(String value) {
     String cleanWhitespaceString = value.replaceAll(" ", "");
     List<String> list = cleanWhitespaceString.split(',');
     list.removeWhere((element) => element.isEmpty || !isNumeric(element));

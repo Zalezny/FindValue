@@ -3,17 +3,20 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../strings.dart';
+
 class NumberPage extends StatelessWidget {
   final int number;
   const NumberPage({super.key, required this.number});
 
   Widget? _buildAppBar() {
+    const appbarText = Text(Strings.chosenNumber);
     return Platform.isIOS
         ? const CupertinoNavigationBar(
-            middle: Text('Chosen number'),
+            middle: appbarText,
           )
         : AppBar(
-            title: const Text('Chosen Number'),
+            title: appbarText,
           );
   }
 
