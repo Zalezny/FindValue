@@ -37,21 +37,28 @@ class _CustomTextFieldState extends State<CustomTextField> {
         Provider.of<ErrorTextProvider>(context).getErrorText;
     return Platform.isIOS
         ? SafeArea(
-            child: CupertinoTextFormFieldRow(
-              controller: _textFieldController,
-              prefix: const Text(Strings.tab),
-              onChanged: (value) {
-                widget.textFieldCallback(value);
-              },
-              inputFormatters: _getFormattersList(_textFieldController.text),
-              placeholder: Strings.placeholderTextField,
-              // Validator for Cupertino (not work)
-              validator: (String? value) {
-                if (value == null || value.isEmpty) {
-                  return Strings.enterValue;
-                }
-                return null;
-              },
+            child: Column(
+              children: [
+                CupertinoTextFormFieldRow(
+                  controller: _textFieldController,
+                  prefix: const Text(Strings.tab),
+                  onChanged: (value) {
+                    widget.textFieldCallback(value);
+                    _buildOnChanged(value);
+                  },
+                  inputFormatters:
+                      _getFormattersList(_textFieldController.text),
+                  placeholder: Strings.placeholderTextField,
+                ),
+                Container(
+                  alignment: Alignment.centerLeft,
+                  margin: const EdgeInsets.only(left: 20),
+                  child: Text(
+                    errorText,
+                    style: const TextStyle(color: Colors.red, fontSize: 12),
+                  ),
+                )
+              ],
             ),
           )
         : TextField(
@@ -93,7 +100,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
   bool _isMinRangeListFormatter(String value) {
     String cleanWhitespaceString = value.replaceAll(" ", "");
     List<String> list = cleanWhitespaceString.split(',');
-    list.removeWhere((element) => element.isEmpty || !isNumeric(element));
+    list.removeWhere((element) => element.isEmpty || !Utils.isNumeric(element));
 
     if (list.length > 2) {
       return true;

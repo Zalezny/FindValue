@@ -76,7 +76,8 @@ class _MyHomePageState extends State<MyHomePage> {
     //Clean Whitespaces, when for example someone give 4, 4 605, -, 5 it will be: 4,4605,5
     String cleanWhitespaceString = _text.replaceAll(" ", "");
     List<String> stringList = cleanWhitespaceString.split(',');
-    stringList.removeWhere((element) => element.isEmpty || !isNumeric(element));
+    stringList
+        .removeWhere((element) => element.isEmpty || !Utils.isNumeric(element));
     List<int> numbersList = stringList.map(int.parse).toList();
 
     if (numbersList.length >= 3) {

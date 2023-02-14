@@ -1,7 +1,9 @@
-bool isNumeric(String? s) {
-  if (s == null) {
-    return false;
+class Utils {
+  static bool isNumeric(String? s) {
+    if (s == null) {
+      return false;
+    }
+    var value = int.tryParse(s);
+    return value == null ? false : true;
   }
-  var value = int.tryParse(s);
-  return value == null ? false : true;
 }

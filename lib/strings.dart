@@ -11,7 +11,8 @@ class Strings {
 
   static const String titleApp = "Find Value";
   static const String emptyString = "";
-  static const String incorrectNumbers = "Źle wpisane liczby";
+  static const String incorrectNumbers =
+      "Źle wpisane liczby (nie da sie ustalić liczby odstającej)";
   static const String find = "Wyszukaj";
   static const String placeholderTextField = "Wpisz liczby np. 1, 2, 3";
   static const String tab = "Tablica:";
