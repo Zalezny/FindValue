@@ -1,6 +1,11 @@
+import 'dart:io';
+
 import 'package:findvalue/pages/number_page.dart';
 import 'package:findvalue/utils/check_list.dart';
 import 'package:findvalue/utils/custom_formatter.dart';
+import 'package:findvalue/utils/utils.dart';
+import 'package:findvalue/widgets/custom_text_field.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -13,6 +18,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     return MaterialApp(
       title: 'Find Value',
       theme: ThemeData(
@@ -32,20 +41,34 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final textFieldController = TextEditingController();
-  String errorTextValue = '';
+  final _textFieldController = TextEditingController();
+  String _errorTextValue = '';
 
-  bool isNumeric(String? s) {
-    if (s == null) {
-      return false;
-    }
-    var value = int.tryParse(s);
-    return value == null ? false : true;
+  @override
+  void dispose() {
+    _textFieldController.dispose();
+    super.dispose();
   }
 
-  void onFindButtonPressed() {
-    //Clean Whitespaces, when for example someone give 4, 4 605, 5 it will be: 4,4605,5
-    String cleanWhitespaceString = textFieldController.text.replaceAll(" ", "");
+  @override
+  Widget build(BuildContext context) {
+    return Platform.isIOS
+        ? SafeArea(
+            child: CupertinoPageScaffold(
+              navigationBar: _buildAppBar() as CupertinoNavigationBar,
+              child: _buildBody(),
+            ),
+          )
+        : Scaffold(
+            appBar: _buildAppBar() as AppBar,
+            body: _buildBody(),
+          );
+  }
+
+  void _onFindButtonPressed() {
+    //Clean Whitespaces, when for example someone give 4, 4 605, -, 5 it will be: 4,4605,5
+    String cleanWhitespaceString =
+        _textFieldController.text.replaceAll(" ", "");
     List<String> stringList = cleanWhitespaceString.split(',');
     stringList.removeWhere((element) => element.isEmpty || !isNumeric(element));
     List<int> numbersList = stringList.map(int.parse).toList();
@@ -54,16 +77,16 @@ class _MyHomePageState extends State<MyHomePage> {
       final chosenNumber = findNotCorrectAmount(numbersList);
       if (chosenNumber == null) {
         setState(() {
-          errorTextValue = "Incorrect numbers";
+          _errorTextValue = "Incorrect numbers";
         });
 
         return;
       } else {
         setState(() {
-          errorTextValue = "";
+          _errorTextValue = "";
         });
       }
-      if (errorTextValue == "") {
+      if (_errorTextValue == "") {
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -74,65 +97,38 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  bool isMinRangeList(String value) {
-    String cleanWhitespaceString = value.replaceAll(" ", "");
-    List<String> list = cleanWhitespaceString.split(',');
-    list.removeWhere((element) => element.isEmpty);
-
-    if (list.length > 2) {
-      return true;
-    }
-    return false;
+  void setErrorText(String text) {
+    setState(() {
+      _errorTextValue = text;
+    });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: Text(widget.title),
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: [
-              TextField(
-                onChanged: (value) {
-                  setState(() {
-                    if (','.allMatches(value).length < 3) {
-                      if (!isMinRangeList(value)) {
-                        errorTextValue = "Must be min. 3 elements in list";
-                      } else {
-                        errorTextValue = "";
-                      }
-                    } else {
-                      errorTextValue = "";
-                    }
-                  });
-                },
-                controller: textFieldController,
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'^[0-9\s,-]+$'),
-                      replacementString: textFieldController.text),
-                  CustomFormatter()
-                ],
-                decoration: InputDecoration(
-                    errorText: errorTextValue.isEmpty ? null : errorTextValue,
-                    border: const OutlineInputBorder(),
-                    hintText: 'Enter numbers ex. 1, 2, 3'),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 20),
-                child: OutlinedButton(
-                    onPressed: onFindButtonPressed, child: const Text('Find')),
-              )
-            ],
+  Widget _buildAppBar() {
+    return Platform.isIOS
+        ? CupertinoNavigationBar(
+            middle: Text(widget.title),
+          )
+        : AppBar(
+            title: Text(widget.title),
+          );
+  }
+
+  Widget _buildBody() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        children: [
+          CustomTextField(
+            controller: _textFieldController,
+            errorText: _errorTextValue,
           ),
-        ));
-  }
-
-  @override
-  void dispose() {
-    textFieldController.dispose();
-    super.dispose();
+          Padding(
+            padding: const EdgeInsets.only(top: 20),
+            child: OutlinedButton(
+                onPressed: _onFindButtonPressed, child: const Text('Find')),
+          )
+        ],
+      ),
+    );
   }
 }
