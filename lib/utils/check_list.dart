@@ -23,12 +23,17 @@ bool? checkEvenList(List<int> numbersList) {
     } else {
       odd++;
     }
-    if (even >= 2) {
-      return true;
-    }
-    if (odd >= 2) {
-      return false;
-    }
   }
-  return false;
+  if (odd == 1 && even > 1) {
+    return true;
+  }
+  if (even == 1 && odd > 1) {
+    return false;
+  }
+  if (even == odd) {
+    return null;
+  }
+  if (even > 1 && odd > 1) {
+    return null;
+  }
 }

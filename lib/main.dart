@@ -1,6 +1,8 @@
 import 'package:findvalue/pages/number_page.dart';
 import 'package:findvalue/utils/check_list.dart';
+import 'package:findvalue/utils/custom_formatter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 void main() {
   runApp(const MyApp());
@@ -31,27 +33,39 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final textFieldController = TextEditingController();
+  String errorTextValue = '';
 
   void onFindButtonPressed() {
-    List<String> stringList = textFieldController.text.split(",");
+    //Clean Whitespaces, when for example someone give 4, 4 605, 5 it will be: 4,4605,5
+    String cleanWhitespaceString = textFieldController.text.replaceAll(" ", "");
+    List<String> stringList = cleanWhitespaceString.split(',');
+    stringList.removeWhere((element) => element.isEmpty);
     List<int> numbersList = stringList.map(int.parse).toList();
 
-    final chosenNumber = findNotCorrectAmount(numbersList);
-    if (chosenNumber == null) {
-    } else {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (ctx) => NumberPage(number: chosenNumber),
-        ),
-      );
+    if (errorTextValue == "" && numbersList.length >= 3) {
+      final chosenNumber = findNotCorrectAmount(numbersList);
+      if (chosenNumber == null) {
+        //TODO
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (ctx) => NumberPage(number: chosenNumber),
+          ),
+        );
+      }
     }
   }
 
-  @override
-  void dispose() {
-    textFieldController.dispose();
-    super.dispose();
+  bool isMinRangeList(String value) {
+    String cleanWhitespaceString = value.replaceAll(" ", "");
+    List<String> list = cleanWhitespaceString.split(',');
+    list.removeWhere((element) => element.isEmpty);
+
+    if (list.length > 2) {
+      return true;
+    }
+    return false;
   }
 
   @override
@@ -65,11 +79,29 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Column(
             children: [
               TextField(
+                onChanged: (value) {
+                  setState(() {
+                    if (','.allMatches(value).length < 3) {
+                      if (!isMinRangeList(value)) {
+                        errorTextValue = "Must be min. 3 elements in list";
+                      } else {
+                        errorTextValue = "";
+                      }
+                    } else {
+                      errorTextValue = "";
+                    }
+                  });
+                },
                 controller: textFieldController,
-                decoration: const InputDecoration(
-                    errorText: 'test',
-                    border: OutlineInputBorder(),
-                    hintText: 'Enter a numbers ex. 1, 2, 3'),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^[0-9\s,]+$'),
+                      replacementString: textFieldController.text),
+                  CustomFormatter()
+                ],
+                decoration: InputDecoration(
+                    errorText: errorTextValue.isEmpty ? null : errorTextValue,
+                    border: const OutlineInputBorder(),
+                    hintText: 'Enter numbers ex. 1, 2, 3'),
               ),
               Padding(
                 padding: const EdgeInsets.only(top: 20),
@@ -79,5 +111,11 @@ class _MyHomePageState extends State<MyHomePage> {
             ],
           ),
         ));
+  }
+
+  @override
+  void dispose() {
+    textFieldController.dispose();
+    super.dispose();
   }
 }
