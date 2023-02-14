@@ -36,4 +36,5 @@ bool? checkEvenList(List<int> numbersList) {
   if (even > 1 && odd > 1) {
     return null;
   }
+  return null;
 }

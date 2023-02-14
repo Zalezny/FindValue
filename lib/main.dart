@@ -35,18 +35,35 @@ class _MyHomePageState extends State<MyHomePage> {
   final textFieldController = TextEditingController();
   String errorTextValue = '';
 
+  bool isNumeric(String? s) {
+    if (s == null) {
+      return false;
+    }
+    var value = int.tryParse(s);
+    return value == null ? false : true;
+  }
+
   void onFindButtonPressed() {
     //Clean Whitespaces, when for example someone give 4, 4 605, 5 it will be: 4,4605,5
     String cleanWhitespaceString = textFieldController.text.replaceAll(" ", "");
     List<String> stringList = cleanWhitespaceString.split(',');
-    stringList.removeWhere((element) => element.isEmpty);
+    stringList.removeWhere((element) => element.isEmpty || !isNumeric(element));
     List<int> numbersList = stringList.map(int.parse).toList();
 
-    if (errorTextValue == "" && numbersList.length >= 3) {
+    if (numbersList.length >= 3) {
       final chosenNumber = findNotCorrectAmount(numbersList);
       if (chosenNumber == null) {
-        //TODO
+        setState(() {
+          errorTextValue = "Incorrect numbers";
+        });
+
+        return;
       } else {
+        setState(() {
+          errorTextValue = "";
+        });
+      }
+      if (errorTextValue == "") {
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -94,7 +111,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
                 controller: textFieldController,
                 inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'^[0-9\s,]+$'),
+                  FilteringTextInputFormatter.allow(RegExp(r'^[0-9\s,-]+$'),
                       replacementString: textFieldController.text),
                   CustomFormatter()
                 ],
