@@ -1,4 +1,5 @@
-import 'package:findvalue/check_list.dart';
+import 'package:findvalue/pages/number_page.dart';
+import 'package:findvalue/utils/check_list.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -15,7 +16,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Home Page'),
+      home: const MyHomePage(title: 'Find Value'),
     );
   }
 }
@@ -35,7 +36,16 @@ class _MyHomePageState extends State<MyHomePage> {
     List<String> stringList = textFieldController.text.split(",");
     List<int> numbersList = stringList.map(int.parse).toList();
 
-    print(findNotCorrectAmount(numbersList));
+    final chosenNumber = findNotCorrectAmount(numbersList);
+    if (chosenNumber == null) {
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (ctx) => NumberPage(number: chosenNumber),
+        ),
+      );
+    }
   }
 
   @override
@@ -50,17 +60,24 @@ class _MyHomePageState extends State<MyHomePage> {
         appBar: AppBar(
           title: Text(widget.title),
         ),
-        body: Column(
-          children: [
-            TextField(
-              controller: textFieldController,
-              decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: 'Enter a numbers [ex. 1, 2, 3]'),
-            ),
-            OutlinedButton(
-                onPressed: onFindButtonPressed, child: const Text('Find'))
-          ],
+        body: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: [
+              TextField(
+                controller: textFieldController,
+                decoration: const InputDecoration(
+                    errorText: 'test',
+                    border: OutlineInputBorder(),
+                    hintText: 'Enter a numbers ex. 1, 2, 3'),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 20),
+                child: OutlinedButton(
+                    onPressed: onFindButtonPressed, child: const Text('Find')),
+              )
+            ],
+          ),
         ));
   }
 }

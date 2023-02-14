@@ -1,16 +1,20 @@
 int? findNotCorrectAmount(List<int> numbersList) {
+  final isEvenList = checkEvenList(numbersList);
+  if (isEvenList == null) {
+    return null;
+  }
   for (int i = 0; i < numbersList.length; i++) {
-    if (isEvenList(numbersList) && numbersList[i].isOdd) {
+    if (isEvenList && numbersList[i].isOdd) {
       return numbersList[i];
     }
-    if (!isEvenList(numbersList) && numbersList[i].isEven) {
+    if (!isEvenList && numbersList[i].isEven) {
       return numbersList[i];
     }
   }
   return null;
 }
 
-bool isEvenList(List<int> numbersList) {
+bool? checkEvenList(List<int> numbersList) {
   var even = 0;
   var odd = 0;
   for (int i = 0; i < numbersList.length; i++) {
