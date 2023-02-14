@@ -3,14 +3,19 @@ import 'dart:io';
 import 'package:findvalue/pages/number_page.dart';
 import 'package:findvalue/utils/check_list.dart';
 import 'package:findvalue/utils/custom_formatter.dart';
+import 'package:findvalue/utils/error_text_provider.dart';
 import 'package:findvalue/utils/utils.dart';
 import 'package:findvalue/widgets/custom_text_field.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(ChangeNotifierProvider(
+    create: (ctx) => ErrorTextProvider(),
+    child: const MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {
@@ -22,13 +27,17 @@ class MyApp extends StatelessWidget {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
-    return MaterialApp(
-      title: 'Find Value',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const MyHomePage(title: 'Find Value'),
-    );
+    return Platform.isIOS
+        ? const CupertinoApp(
+            theme: CupertinoThemeData(brightness: Brightness.light),
+            home: MyHomePage(title: 'Find Value'))
+        : MaterialApp(
+            title: 'Find Value',
+            theme: ThemeData(
+              primarySwatch: Colors.blue,
+            ),
+            home: const MyHomePage(title: 'Find Value'),
+          );
   }
 }
 
@@ -41,13 +50,9 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final _textFieldController = TextEditingController();
-  String _errorTextValue = '';
-
-  @override
-  void dispose() {
-    _textFieldController.dispose();
-    super.dispose();
+  String _text = "";
+  void _saveErrorText(String text) {
+    Provider.of<ErrorTextProvider>(context, listen: false).saveErrorText(text);
   }
 
   @override
@@ -66,9 +71,10 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _onFindButtonPressed() {
+    final String errorText =
+        Provider.of<ErrorTextProvider>(context, listen: false).getErrorText;
     //Clean Whitespaces, when for example someone give 4, 4 605, -, 5 it will be: 4,4605,5
-    String cleanWhitespaceString =
-        _textFieldController.text.replaceAll(" ", "");
+    String cleanWhitespaceString = _text.replaceAll(" ", "");
     List<String> stringList = cleanWhitespaceString.split(',');
     stringList.removeWhere((element) => element.isEmpty || !isNumeric(element));
     List<int> numbersList = stringList.map(int.parse).toList();
@@ -76,17 +82,12 @@ class _MyHomePageState extends State<MyHomePage> {
     if (numbersList.length >= 3) {
       final chosenNumber = findNotCorrectAmount(numbersList);
       if (chosenNumber == null) {
-        setState(() {
-          _errorTextValue = "Incorrect numbers";
-        });
-
+        _saveErrorText("Incorrect numbers");
         return;
       } else {
-        setState(() {
-          _errorTextValue = "";
-        });
+        _saveErrorText("");
       }
-      if (_errorTextValue == "") {
+      if (errorText == "") {
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -97,9 +98,9 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void setErrorText(String text) {
+  void onTextFieldCallback(String text) {
     setState(() {
-      _errorTextValue = text;
+      _text = text;
     });
   }
 
@@ -119,8 +120,7 @@ class _MyHomePageState extends State<MyHomePage> {
       child: Column(
         children: [
           CustomTextField(
-            controller: _textFieldController,
-            errorText: _errorTextValue,
+            textFieldCallback: (value) => onTextFieldCallback(value),
           ),
           Padding(
             padding: const EdgeInsets.only(top: 20),

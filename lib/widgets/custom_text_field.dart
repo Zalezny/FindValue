@@ -3,52 +3,64 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
 import '../utils/custom_formatter.dart';
+import '../utils/error_text_provider.dart';
 import '../utils/utils.dart';
 
 class CustomTextField extends StatefulWidget {
-  TextEditingController controller;
-  String errorText;
-  CustomTextField(
-      {super.key, required this.controller, required this.errorText});
+  final Function textFieldCallback;
+
+  const CustomTextField({super.key, required this.textFieldCallback});
 
   @override
   State<CustomTextField> createState() => _CustomTextFieldState();
 }
 
 class _CustomTextFieldState extends State<CustomTextField> {
+  final _textFieldController = TextEditingController();
+  void _saveErrorText(String text) {
+    Provider.of<ErrorTextProvider>(context, listen: false).saveErrorText(text);
+  }
+
+  @override
+  void dispose() {
+    _textFieldController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final String errorText =
+        Provider.of<ErrorTextProvider>(context).getErrorText;
     return Platform.isIOS
         ? SafeArea(
             child: CupertinoTextFormFieldRow(
-              controller: widget.controller,
-              inputFormatters: _getFormattersList(widget.controller.text),
+              controller: _textFieldController,
+              prefix: const Text("Tab"),
+              onChanged: (value) {
+                widget.textFieldCallback(value);
+              },
+              inputFormatters: _getFormattersList(_textFieldController.text),
               placeholder: 'Enter numbers ex. 1, 2, 3',
-              validator: (value) {
-                if (value != null) {
-                  if (','.allMatches(value).length < 3) {
-                    if (!_isMinRangeList(value)) {
-                      return "Must be min. 3 elements in list";
-                    } else {
-                      return "";
-                    }
-                  } else {
-                    return "";
-                  }
+              validator: (String? value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter a value';
                 }
                 return null;
               },
-              decoration: const BoxDecoration(),
             ),
           )
         : TextField(
-            onChanged: (value) => _buildOnChanged(value),
-            controller: widget.controller,
-            inputFormatters: _getFormattersList(widget.controller.text),
+            onChanged: (value) {
+              widget.textFieldCallback(value);
+              _buildOnChanged(value);
+            },
+            controller: _textFieldController,
+            inputFormatters: _getFormattersList(_textFieldController.text),
             decoration: InputDecoration(
-                errorText: widget.errorText.isEmpty ? null : widget.errorText,
+                errorText: errorText.isEmpty ? null : errorText,
                 border: const OutlineInputBorder(),
                 hintText: 'Enter numbers ex. 1, 2, 3'),
           );
@@ -66,12 +78,12 @@ class _CustomTextFieldState extends State<CustomTextField> {
     setState(() {
       if (','.allMatches(value).length < 3) {
         if (!_isMinRangeList(value)) {
-          widget.errorText = "Must be min. 3 elements in list";
+          _saveErrorText("Must be min. 3 elements in list");
         } else {
-          widget.errorText = "";
+          _saveErrorText("");
         }
       } else {
-        widget.errorText = "";
+        _saveErrorText("");
       }
     });
   }
