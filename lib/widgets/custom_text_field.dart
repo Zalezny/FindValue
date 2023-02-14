@@ -76,17 +76,15 @@ class _CustomTextFieldState extends State<CustomTextField> {
   }
 
   void _buildOnChanged(String value) {
-    setState(() {
-      if (','.allMatches(value).length < 3) {
-        if (!_isMinRangeListFormatter(value)) {
-          _saveErrorText(Strings.errorMinThree);
-        } else {
-          _saveErrorText(Strings.emptyString);
-        }
+    if (','.allMatches(value).length < 3) {
+      if (!_isMinRangeListFormatter(value)) {
+        _saveErrorText(Strings.errorMinThree);
       } else {
         _saveErrorText(Strings.emptyString);
       }
-    });
+    } else {
+      _saveErrorText(Strings.emptyString);
+    }
   }
 
   List<TextInputFormatter> _getFormattersList(String replacementString) {
